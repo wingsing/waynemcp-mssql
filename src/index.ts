@@ -66,6 +66,11 @@ const server = new Server(
   {
     name: 'waynemcp-mssql',
     version: '1.0.0'
+  },
+  {
+    capabilities: {
+      tools: {}
+    }
   }
 );
 
