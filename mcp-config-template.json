@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "wayne-mssql": {
+      "command": "node",
+      "args": ["C:\\MCP\\waynemcp-mssql\\dist\\index.js"],
+      "env": {
+        "SERVER_NAME": "localhost",
+        "DATABASE_NAME": "test",
+        "USER_ID": "sa",
+        "PASSWORD": "your_password",
+        "CONNECTION_TIMEOUT": "30",
+        "COMMAND_TIMEOUT": "30",
+        "TRUST_SERVER_CERTIFICATE": "true",
+        "ENCRYPT": "false"
+      }
+    }
+  }
+} 
