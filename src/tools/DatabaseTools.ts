@@ -9,6 +9,14 @@ export class DatabaseTools {
     this.db = db;
   }
 
+  async switchDatabase(databaseName: string): Promise<any> {
+    // 这个方法现在只是返回成功消息
+    // 实际的切换在 index.ts 中处理
+    return {
+      message: `Switched to database ${databaseName}`
+    };
+  }
+
   async listDatabases(): Promise<any> {
     const listDatabasesSQL = `
       SELECT 
@@ -42,8 +50,7 @@ export class DatabaseTools {
       SELECT 
         name,
         type_desc,
-        create_date,
-        is_disabled
+        create_date
       FROM sys.database_principals 
       WHERE type IN ('S', 'U', 'G')
       ORDER BY name
@@ -127,7 +134,6 @@ export class DatabaseTools {
         OBJECT_SCHEMA_NAME(t.parent_id) AS table_schema,
         OBJECT_NAME(t.parent_id) AS table_name,
         t.type_desc,
-        t.is_disabled,
         t.create_date,
         t.modify_date
       FROM sys.triggers t

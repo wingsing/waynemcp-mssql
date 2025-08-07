@@ -23,6 +23,9 @@ export class DatabaseConnection {
   public static getInstance(config: DatabaseConfig): DatabaseConnection {
     if (!DatabaseConnection.instance) {
       DatabaseConnection.instance = new DatabaseConnection(config);
+    } else if (DatabaseConnection.instance.config.database !== config.database) {
+      // 如果数据库名称改变，创建新实例
+      DatabaseConnection.instance = new DatabaseConnection(config);
     }
     return DatabaseConnection.instance;
   }
@@ -63,6 +66,10 @@ export class DatabaseConnection {
     }
   }
 
+  public getCurrentDatabase(): string {
+    return this.config.database;
+  }
+
   public async executeQuery(query: string, params?: any[]): Promise<sql.IResult<any>> {
     if (!this.pool) {
       throw new Error('Database not connected');
@@ -71,9 +78,26 @@ export class DatabaseConnection {
     try {
       const request = this.pool.request();
       
-      if (params) {
+      if (params && params.length > 0) {
         params.forEach((param, index) => {
-          request.input(`param${index}`, param);
+          // 处理不同类型的参数
+          if (param === null || param === undefined) {
+            request.input(`param${index}`, sql.NVarChar, null);
+          } else if (typeof param === 'string') {
+            request.input(`param${index}`, sql.NVarChar, param);
+          } else if (typeof param === 'number') {
+            if (Number.isInteger(param)) {
+              request.input(`param${index}`, sql.Int, param);
+            } else {
+              request.input(`param${index}`, sql.Float, param);
+            }
+          } else if (typeof param === 'boolean') {
+            request.input(`param${index}`, sql.Bit, param);
+          } else if (param instanceof Date) {
+            request.input(`param${index}`, sql.DateTime, param);
+          } else {
+            request.input(`param${index}`, sql.NVarChar, String(param));
+          }
         });
       }
 

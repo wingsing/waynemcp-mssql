@@ -3,6 +3,7 @@ import { TableTools } from './TableTools.js';
 import { IndexTools } from './IndexTools.js';
 import { DataTools } from './DataTools.js';
 import { DatabaseTools } from './DatabaseTools.js';
+import { DatabaseConnection } from '../database/connection.js';
 
 export function createTools(tableTools: TableTools, indexTools: IndexTools, dataTools: DataTools, databaseTools: DatabaseTools): Tool[] {
   return [
@@ -533,6 +534,20 @@ export function createTools(tableTools: TableTools, indexTools: IndexTools, data
         },
         required: ['tableName', 'dataArray']
       }
+    },
+    {
+      name: 'switch_database',
+      description: 'Switch the current database connection',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          databaseName: {
+            type: 'string',
+            description: 'Name of the database to switch to'
+          }
+        },
+        required: ['databaseName']
+      }
     }
   ];
 }
@@ -546,6 +561,9 @@ export async function executeTool(
   databaseTools: DatabaseTools
 ): Promise<any> {
   switch (name) {
+    case 'switch_database':
+      return await databaseTools.switchDatabase(args.databaseName);
+
     case 'list_databases':
       return await databaseTools.listDatabases();
 
@@ -632,6 +650,10 @@ export async function executeTool(
 
     case 'batch_insert':
       return await dataTools.batchInsert(args.tableName, args.dataArray);
+
+    case 'switch_database':
+      // 这个功能已经在index.ts中实现，这里不需要重复
+      return { message: 'Database switching is handled in the main server' };
 
     default:
       throw new Error(`Unknown tool: ${name}`);

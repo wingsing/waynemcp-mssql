@@ -35,7 +35,7 @@ export class DataTools {
   }
 
   async updateData(tableName: string, data: Record<string, any>, whereClause: string, whereParams?: any[]): Promise<any> {
-    const setClause = Object.keys(data).map((key, index) => `${key} = @setParam${index}`).join(', ');
+    const setClause = Object.keys(data).map((key, index) => `${key} = @param${index}`).join(', ');
     const updateSQL = `
       UPDATE ${tableName} 
       SET ${setClause}
@@ -128,32 +128,20 @@ export class DataTools {
       };
     }
 
-    const columns = Object.keys(dataArray[0]);
-    const batchSQL = dataArray.map((data, rowIndex) => {
-      const values = Object.values(data);
-      const placeholders = values.map((_, colIndex) => `@param${rowIndex}_${colIndex}`);
-      return `(${placeholders.join(', ')})`;
-    }).join(', ');
-
-    const insertSQL = `
-      INSERT INTO ${tableName} (${columns.join(', ')})
-      VALUES ${batchSQL}
-    `;
-
-    const allParams: any[] = [];
-    dataArray.forEach((data, rowIndex) => {
-      Object.values(data).forEach((value, colIndex) => {
-        allParams.push(value);
-      });
-    });
-
+    // 逐个插入数据
     try {
-      const result = await this.db.executeQuery(insertSQL, allParams);
+      let insertedCount = 0;
+      for (const data of dataArray) {
+        const result = await this.insertData(tableName, data);
+        if (result.success) {
+          insertedCount++;
+        }
+      }
+      
       return {
         success: true,
         message: `Batch insert completed successfully into '${tableName}'`,
-        rowsAffected: result.rowsAffected[0],
-        insertedCount: dataArray.length
+        insertedCount: insertedCount
       };
     } catch (error) {
       return {

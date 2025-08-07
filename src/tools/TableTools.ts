@@ -185,10 +185,12 @@ export class TableTools {
 
   async listTables(): Promise<any> {
     const listTablesSQL = `
-      SELECT TABLE_NAME 
-      FROM INFORMATION_SCHEMA.TABLES 
-      WHERE TABLE_TYPE = 'BASE TABLE' 
-      ORDER BY TABLE_NAME
+      SELECT OBJECT_SCHEMA_NAME(object_id) as TABLE_SCHEMA,
+             name as TABLE_NAME
+      FROM sys.objects
+      WHERE type_desc = 'USER_TABLE'
+      AND is_ms_shipped = 0
+      ORDER BY name;
     `;
 
     try {

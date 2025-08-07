@@ -91,6 +91,40 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
+    // 检查是否是switch_database工具
+    if (request.params.name === 'switch_database') {
+      const args = request.params.arguments as { databaseName: string };
+      const { databaseName } = args;
+      
+      // 断开当前连接
+      if (dbConnection) {
+        await dbConnection.disconnect();
+      }
+      
+      // 创建新配置
+      const config = createDatabaseConfig();
+      config.database = databaseName;
+      
+      // 获取新的实例（会因为数据库名不同而创建新实例）
+      dbConnection = DatabaseConnection.getInstance(config);
+      await dbConnection.connect();
+      
+      // 重新初始化所有工具
+      tableTools = new TableTools(dbConnection);
+      indexTools = new IndexTools(dbConnection);
+      dataTools = new DataTools(dbConnection);
+      databaseTools = new DatabaseTools(dbConnection);
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ message: `Switched to database ${databaseName}` }, null, 2)
+          }
+        ]
+      };
+    }
+
     const result = await executeTool(
       request.params.name,
       request.params.arguments,
